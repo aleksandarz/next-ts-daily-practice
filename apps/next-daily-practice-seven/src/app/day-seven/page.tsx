@@ -9,13 +9,14 @@ import {
   serverTimestamp,
   doc,
   deleteDoc,
+  Timestamp,
   updateDoc } from "@firebase/firestore";
 
 export type NotesPayload = {
   id: string;
   noteName: string;
   noteText: string;
-  createdAt: Date;
+  createdAt: Timestamp | null;
 }
 
 const Notes = () => {
@@ -59,12 +60,16 @@ const Notes = () => {
   }
 
   const updateNote = async (nodeId: string) => {
-    const newNote = prompt("Type your note: ");
-    if (!newNote) return;
+    const newNoteName = prompt("Enter new note name: ");
+    if (!newNoteName) return;
+
+    const newNoteText = prompt("Enter new note text: ");
+    if (!newNoteText) return;
 
     const noteRef = doc(db, "notes", nodeId);
     await updateDoc(noteRef, {
-      note: newNote,
+      noteName: newNoteName,
+      noteText: newNoteText
     });
 
     await fetchNotes();
@@ -73,8 +78,7 @@ const Notes = () => {
   return (
     <>
       <form
-        className="flex flex-col gap-3 min-w-full items-center mt-10"
-        onSubmit={addNote}>
+        className="flex flex-col gap-3 min-w-full items-center mt-10">
         <input
           type="text"
           value={noteName}
