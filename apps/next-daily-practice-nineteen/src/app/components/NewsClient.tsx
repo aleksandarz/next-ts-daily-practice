@@ -1,6 +1,5 @@
 "use client"
 
-import { useRouter } from "next/navigation";
 import { useState, Suspense } from "react";
 
 export type PostsType = {
@@ -15,51 +14,68 @@ interface NewsClientProps {
   initialError: string | null;
 }
 
-const NewsClient = ({ news: news, initialError }: NewsClientProps) => {
-  const router = useRouter();
-
+const NewsClient = ({ news: initialNews, initialError }: NewsClientProps) => {
+  const [localNews, setLocalNews] = useState<PostsType[]>(initialNews);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(initialError);
+
+  const handleRetry = async () => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch("https://jsonplaceholder.typicode.com/posts?_limit=10", {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.status}`);
+      }
+
+      const data: PostsType[] = await response.json();
+      setLocalNews(data);
+    } catch (err) {
+      setError("We couldn't load news. Try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <>
-      <div className="min-h-screen w-full items-center justify-center">
-
-        <Suspense fallback={<p className="text-center text-blue-400 text-xl mt-10">Fetching news data...</p>}>
-          {initialError && (
-            <>
-              <p className="text-center text-red-400 text-xl mt-10">{initialError}</p>
-            </>
-          )}
-
-          <div>
+    <div className="min-h-screen w-full flex flex-col items-center justify-center p-8">
+      <Suspense fallback={<p className="text-blue-500 text-xl">Loading news...</p>}>
+        {error && (
+          <div className="text-center mb-8">
+            <p className="text-red-500 text-xl mb-4">{error}</p>
             <button
-              onClick={router.refresh}
+              onClick={handleRetry}
               disabled={loading}
-              className="bg-pink-400 text-white w-36 h-9 rounded"
-              type="button">
-              {loading ? "Loading..." : "Retry"}
+              className="px-6 py-3 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
+            >
+              {loading ? "Loading..." : "Try again"}
             </button>
           </div>
+        )}
 
-          <div className="flex flex-col gap-3 items-center">
-            {news !== null && news.length > 0 && (
-              news.map((n) => (
-                <>
-                  <div
-                    className="flex flex-col gap-2 w-[50rem] h-fit p-10 border-b-2 border-pink-400"
-                    key={n.id}>
-                    <h2 className="text-xl font-semibold">{n.title}</h2>
-                    <p>{n.body}</p>
-                  </div>
-                </>
-              ))
-            )}
+        {!loading && !error && localNews.length === 0 && (
+          <p className="text-gray-500 text-xl">No news at this moment</p>
+        )}
+
+        {!loading && !error && localNews.length > 0 && (
+          <div className="w-full max-w-4xl space-y-6">
+            {localNews.map((item) => (
+              <div
+                key={item.id}
+                className="p-6 border border-pink-400 rounded-lg shadow-md bg-white">
+                <h2 className="text-2xl font-bold mb-3">{item.title}</h2>
+                <p className="text-gray-700">{item.body}</p>
+              </div>
+            ))}
           </div>
-        </Suspense>
-
-      </div>
-    </>
+        )}
+      </Suspense>
+    </div>
   );
-}
+};
 
 export default NewsClient;

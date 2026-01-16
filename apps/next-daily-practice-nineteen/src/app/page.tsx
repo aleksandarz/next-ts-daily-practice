@@ -1,5 +1,7 @@
 import NewsClient, { PostsType } from "@/app/components/NewsClient";
 import { fetchNews } from "@/app/api/fetchNews";
+import SearchNews from "@/app/components/SearchNews";
+import NewsContent from "@/app/components/NewsContent";
 
 export default async function Home() {
   let news: PostsType[] = [];
@@ -13,9 +15,14 @@ export default async function Home() {
   }
 
   return (
-    <NewsClient
-      news={news}
-      initialError={serverError}
-    />
+    <>
+      <main>
+        <SearchNews />
+        <NewsContent />
+        <NewsClient
+          news={news}
+          initialError={serverError}/>
+      </main>
+    </>
   );
 }
