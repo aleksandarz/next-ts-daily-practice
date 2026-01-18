@@ -4,11 +4,13 @@ import { v4 as uuidv4 } from "uuid";
 import { useState } from "react";
 import { TodoType } from "@/app/types/todoType";
 import { ErrorState } from "@/app/types/errorState";
+import { useTodoContext } from "@/app/context/TodoContext";
 
 const AddTodo = () => {
+
+  const { addTodo } = useTodoContext();
   const [todoTitle, setTodoTitle] = useState("");
   const [todoDescription, setTodoDescription] = useState("");
-  const [todos, setTodos] = useState<TodoType[]>([]);
   const [errors, setErrors] = useState<ErrorState>({
     titleError: "",
     descriptionError: "",
@@ -39,9 +41,7 @@ const AddTodo = () => {
       todoDescription,
     };
 
-    const updatedTodos = [...todos, todo];
-    setTodos(updatedTodos);
-    localStorage.setItem("todos", JSON.stringify(updatedTodos));
+    addTodo(todo);
 
     setTodoTitle("");
     setTodoDescription("");
